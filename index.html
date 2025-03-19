@@ -1,1 +1,2240 @@
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Avanzado del Oleoducto Trans Ecuatoriano SOTE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background-color: #00563f;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+        
+        .controls {
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .visualization {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .value-display {
+            display: inline-block;
+            width: 60px;
+            text-align: right;
+            font-weight: bold;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #00563f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #003d2b;
+        }
+        
+        .emergency-btn {
+            background-color: #e63946;
+        }
+        
+        .emergency-btn:hover {
+            background-color: #c1121f;
+        }
+        
+        .rupture-btn {
+            background-color: #800000;
+        }
+        
+        .rupture-btn:hover {
+            background-color: #600000;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .normal {
+            background-color: #2a9d8f;
+        }
+        
+        .warning {
+            background-color: #e9c46a;
+        }
+        
+        .danger {
+            background-color: #e63946;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 15px;
+            background-color: #e6f7ff; /* Color celeste para las pestañas */
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab-button {
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: bold;
+            margin: 0;
+            width: auto;
+            color: #005580; /* Texto azul oscuro para mejor contraste */
+        }
+        
+        .tab-button.active {
+            border-bottom: 3px solid #00563f;
+            color: #00563f;
+            background-color: #bde8ff; /* Color celeste más intenso para la pestaña activa */
+        }
+        
+        .tab-button:hover {
+            background-color: #bde8ff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .map-container {
+            background-color: #f0f9e8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        @keyframes flow {
+            from {
+                stroke-dashoffset: 100;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        #flow-animation {
+            animation: flow 2s linear infinite;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .data-card {
+            background-color: #00563f;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .data-card h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        
+        .data-card p {
+            margin: 5px 0 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #00563f;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .station-normal {
+            color: #2a9d8f;
+        }
+        
+        .station-warning {
+            color: #e9c46a;
+        }
+        
+        .station-critical {
+            color: #e63946;
+        }
+        
+        /* Estilos para el modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: #000;
+        }
+        
+        .modal h2 {
+            color: #800000;
+            margin-top: 0;
+        }
+        
+        .modal h3 {
+            color: #00563f;
+        }
+        
+        .rupture-summary {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .response-row {
+            background-color: #fff3cd !important;
+            font-weight: bold;
+        }
+        
+        .warning-note {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin-top: 20px;
+        }
+        
+        /* Estilos para el pie de página */
+        footer {
+            background-color: #00563f;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Simulador Avanzado del Oleoducto Trans Ecuatoriano SOTE</h1>
+        <p>Sistema Interactivo de Monitoreo y Control</p>
+    </header>
+    
+    <div class="container">
+        <div class="dashboard">
+            <div class="controls">
+                <label for="scenario">Escenario predefinido:</label>
+                <select id="scenario">
+                    <option value="normal">Operación Normal</option>
+                    <option value="high-demand">Alta Demanda</option>
+                    <option value="maintenance">Mantenimiento</option>
+                    <option value="emergency">Emergencia Simulada</option>
+                </select>
+                
+                <div class="control-group">
+                    <label for="flow-rate">Tasa de Flujo (barriles/día):</label>
+                    <div class="slider-container">
+                        <input type="range" id="flow-rate" min="100000" max="450000" step="10000" value="250000">
+                        <span class="value-display" id="flow-rate-value">250000</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="pressure">Presión (PSI):</label>
+                    <div class="slider-container">
+                        <input type="range" id="pressure" min="800" max="1500" step="10" value="1000">
+                        <span class="value-display" id="pressure-value">1000</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="temperature">Temperatura (°C):</label>
+                    <div class="slider-container">
+                        <input type="range" id="temperature" min="20" max="60" step="1" value="35">
+                        <span class="value-display" id="temperature-value">35</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="viscosity">Viscosidad (cP):</label>
+                    <div class="slider-container">
+                        <input type="range" id="viscosity" min="100" max="500" step="10" value="250">
+                        <span class="value-display" id="viscosity-value">250</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="pump-efficiency">Eficiencia de Bombeo (%):</label>
+                    <div class="slider-container">
+                        <input type="range" id="pump-efficiency" min="70" max="100" step="1" value="85">
+                        <span class="value-display" id="pump-efficiency-value">85</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="maintenance-level">Nivel de Mantenimiento (%):</label>
+                    <div class="slider-container">
+                        <input type="range" id="maintenance-level" min="50" max="100" step="1" value="90">
+                        <span class="value-display" id="maintenance-level-value">90</span>
+                    </div>
+                </div>
+                
+                <div class="status">
+                    <div class="status-indicator normal" id="status-indicator"></div>
+                    <span id="status-text">Sistema Operando Normalmente</span>
+                </div>
+                
+                <button id="optimize-button">Optimizar Parámetros</button>
+                <button id="emergency-button" class="emergency-btn">Simular Emergencia</button>
+                <button id="rupture-button" class="rupture-btn">Simular Rotura Total</button>
+            </div>
+            
+            <div class="visualization">
+                <div class="map-container">
+                    <svg width="100%" height="100%" viewBox="0 0 800 300" style="margin-bottom: 20px;">
+                        <!-- Fondo -->
+                        <rect x="0" y="0" width="800" height="300" fill="#f0f9e8" />
+                        
+                        <!-- Terreno -->
+                        <path d="M0,200 Q200,150 400,200 T800,180" fill="#c7e9c0" />
+                        <path d="M0,300 Q200,250 400,280 T800,250 V300 H0 Z" fill="#a8ddb5" />
+                        
+                        <!-- Regiones -->
+                        <circle cx="100" cy="100" r="40" fill="#43a2ca" opacity="0.7" />
+                        <text x="100" y="105" text-anchor="middle" fill="#fff">Amazonia</text>
+                        
+                        <path d="M300,120 L350,60 L400,100 L450,70 L500,140" stroke="#7a5195" stroke-width="5" fill="none" />
+                        <text x="400" y="60" text-anchor="middle" fill="#7a5195">Andes</text>
+                        
+                        <path d="M650,180 Q700,170 750,190 T800,180" fill="#1d91c0" />
+                        <text x="700" y="170" text-anchor="middle" fill="#fff">Costa</text>
+                        
+                        <!-- Oleoducto -->
+                        <path d="M50,150 L120,140 L190,130 L260,100 L330,80 L400,120 L470,140 L540,150 L610,160 L680,170 L750,190" 
+                              stroke="#333" stroke-width="6" fill="none" />
+                        
+                        <!-- Flujo de petróleo -->
+                        <path d="M50,150 L120,140 L190,130 L260,100 L330,80 L400,120 L470,140 L540,150 L610,160 L680,170 L750,190" 
+                              stroke="#8B4513" stroke-width="4" stroke-dasharray="10" fill="none" id="flow-animation" />
+                        
+                        <!-- Estaciones de Bombeo -->
+                        <circle cx="50" cy="150" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="50" y="175" text-anchor="middle" font-size="12">Lago Agrio</text>
+                        
+                        <circle cx="120" cy="140" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="120" y="165" text-anchor="middle" font-size="12">Lumbaqui</text>
+                        
+                        <circle cx="190" cy="130" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="190" y="155" text-anchor="middle" font-size="12">El Salado</text>
+                        
+                        <circle cx="260" cy="100" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="260" y="125" text-anchor="middle" font-size="12">Baeza</text>
+                        
+                        <circle cx="330" cy="80" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="330" y="105" text-anchor="middle" font-size="12">Papallacta</text>
+                        
+                        <circle cx="680" cy="170" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="680" y="195" text-anchor="middle" font-size="12">Quinindé</text>
+                        
+                        <!-- Estaciones Reductoras -->
+                        <rect x="390" y="110" width="20" height="20" fill="#d4af37" stroke="#333" stroke-width="2" />
+                        <text x="400" y="145" text-anchor="middle" font-size="12">San Juan</text>
+                        
+                        <rect x="470" y="130" width="20" height="20" fill="#d4af37" stroke="#333" stroke-width="2" />
+                        <text x="480" y="165" text-anchor="middle" font-size="12">Chiriboga</text>
+                        
+                        <rect x="540" y="140" width="20" height="20" fill="#d4af37" stroke="#333" stroke-width="2" />
+                        <text x="550" y="175" text-anchor="middle" font-size="12">La Palma</text>
+                        
+                        <rect x="610" y="150" width="20" height="20" fill="#d4af37" stroke="#333" stroke-width="2" />
+                        <text x="610" y="185" text-anchor="middle" font-size="12">Sto. Domingo</text>
+                        
+                        <!-- Terminal -->
+                        <circle cx="750" cy="190" r="15" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="750" y="220" text-anchor="middle" font-size="12">Esmeraldas</text>
+                    </svg>
+                    
+                    <!-- Perfil de elevación simplificado -->
+                    <svg width="100%" height="120" viewBox="0 0 800 120">
+                        <!-- Ejes -->
+                        <line x1="50" y1="100" x2="750" y2="100" stroke="#666" stroke-width="1" />
+                        <line x1="50" y1="10" x2="50" y2="100" stroke="#666" stroke-width="1" />
+                        
+                        <!-- Etiquetas eje Y -->
+                        <text x="45" y="20" text-anchor="end" font-size="10">3500m</text>
+                        <text x="45" y="40" text-anchor="end" font-size="10">2500m</text>
+                        <text x="45" y="60" text-anchor="end" font-size="10">1500m</text>
+                        <text x="45" y="80" text-anchor="end" font-size="10">500m</text>
+                        <text x="45" y="100" text-anchor="end" font-size="10">0m</text>
+                        
+                        <!-- Línea de elevación -->
+                        <path d="M50,97 L120,88 L190,81 L260,70 L330,54 L400,40 L470,72 L540,78 L610,90 L680,97 L750,97" 
+                              stroke="#333" stroke-width="2" fill="none" />
+                        
+                        <!-- Puntos de estaciones -->
+                        <circle cx="50" cy="97" r="4" fill="#00563f" />
+                        <text x="50" y="110" text-anchor="middle" font-size="9">0km</text>
+                        
+                        <circle cx="120" cy="88" r="4" fill="#00563f" />
+                        <text x="120" y="110" text-anchor="middle" font-size="9">67km</text>
+                        
+                        <circle cx="190" cy="81" r="4" fill="#00563f" />
+                        <text x="190" y="110" text-anchor="middle" font-size="9">112km</text>
+                        
+                        <circle cx="260" cy="70" r="4" fill="#00563f" />
+                        <text x="260" y="110" text-anchor="middle" font-size="9">164km</text>
+                        
+                        <circle cx="330" cy="54" r="4" fill="#00563f" />
+                        <text x="330" y="110" text-anchor="middle" font-size="9">189km</text>
+                        
+                        <circle cx="400" cy="40" r="4" fill="#00563f" />
+                        <text x="400" y="110" text-anchor="middle" font-size="9">262km</text>
+                        
+                        <circle cx="470" cy="72" r="4" fill="#00563f" />
+                        <text x="470" y="110" text-anchor="middle" font-size="9">298km</text>
+                        
+                        <circle cx="540" cy="78" r="4" fill="#00563f" />
+                        <text x="540" y="110" text-anchor="middle" font-size="9">296km</text>
+                        
+                        <circle cx="610" cy="90" r="4" fill="#00563f" />
+                        <text x="610" y="110" text-anchor="middle" font-size="9">330km</text>
+                        
+                        <circle cx="680" cy="97" r="4" fill="#00563f" />
+                        <text x="680" y="110" text-anchor="middle" font-size="9">420km</text>
+                        
+                        <circle cx="750" cy="97" r="4" fill="#00563f" />
+                        <text x="750" y="110" text-anchor="middle" font-size="9">485km</text>
+                    </svg>
+                </div>
+                
+                <div class="tab-buttons">
+                    <button id="tab-charts" class="tab-button active">Gráficos</button>
+                    <button id="tab-station-details" class="tab-button">Detalles de Estaciones</button>
+                    <button id="tab-efficiency" class="tab-button">Eficiencia</button>
+                </div>
+                
+                <div id="charts" class="tab-content active">
+                    <h2>Datos en Tiempo Real</h2>
+                    <div class="data-grid">
+                        <div class="data-card">
+                            <h3>Caudal Total</h3>
+                            <p id="total-flow">250,000 BPD</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Consumo Energético</h3>
+                            <p id="energy-consumption">12.5 MW</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Eficiencia Global</h3>
+                            <p id="efficiency-value">85%</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Tiempo de Tránsito</h3>
+                            <p id="transit-time">5.2 días</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="station-details" class="tab-content">
+                    <h2>Datos por Estación</h2>
+                    <table id="station-table">
+                        <thead>
+                            <tr>
+                                <th>Estación</th>
+                                <th>Tipo</th>
+                                <th>Ubicación (Km)</th>
+                                <th>Altitud (msnm)</th>
+                                <th>Presión (PSI)</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Lago Agrio</td>
+                                <td>Bombeo</td>
+                                <td>0.00</td>
+                                <td>297</td>
+                                <td>1000</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Lumbaqui</td>
+                                <td>Bombeo</td>
+                                <td>66.57</td>
+                                <td>850</td>
+                                <td>980</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>El Salado</td>
+                                <td>Bombeo</td>
+                                <td>111.72</td>
+                                <td>1289</td>
+                                <td>1050</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Baeza</td>
+                                <td>Bombeo</td>
+                                <td>164.08</td>
+                                <td>2002</td>
+                                <td>1150</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Papallacta</td>
+                                <td>Bombeo</td>
+                                <td>189.29</td>
+                                <td>3009</td>
+                                <td>1200</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>San Juan</td>
+                                <td>Reductora</td>
+                                <td>261.68</td>
+                                <td>3497</td>
+                                <td>900</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Chiriboga</td>
+                                <td>Reductora</td>
+                                <td>297.62</td>
+                                <td>1998</td>
+                                <td>850</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>La Palma</td>
+                                <td>Reductora</td>
+                                <td>295.96</td>
+                                <td>1613</td>
+                                <td>880</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Santo Domingo</td>
+                                <td>Reductora</td>
+                                <td>329.87</td>
+                                <td>566</td>
+                                <td>920</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Quinindé</td>
+                                <td>Bombeo</td>
+                                <td>420.25</td>
+                                <td>97</td>
+                                <td>950</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Esmeraldas</td>
+                                <td>Terminal</td>
+                                <td>485.00</td>
+                                <td>20</td>
+                                <td>920</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="efficiency" class="tab-content">
+                    <h2>Análisis de Sistemas</h2>
+                    <p>El sistema de oleoducto ecuatoriano transporta petróleo desde la región amazónica hasta la costa del Pacífico, atravesando diversas condiciones geográficas y elevaciones.</p>
+                    
+                    <h3>Componentes Principales:</h3>
+                    <ul>
+                        <li><strong>6 Estaciones de Bombeo:</strong> Lago Agrio (0 km), Lumbaqui (66.57 km), El Salado (111.72 km), Baeza (164.08 km), Papallacta (189.29 km), Quinindé (420.25 km)</li>
+                        <li><strong>4 Estaciones Reductoras:</strong> San Juan (261.68 km), Chiriboga (297.62 km), La Palma (295.96 km), Santo Domingo (329.87 km)</li>
+                        <li><strong>Potencia Total Instalada:</strong> 103,650 HP</li>
+                        <li><strong>Longitud Total:</strong> 485 km</li>
+                        <li><strong>Variación de Altitud:</strong> 0-3,497 msnm</li>
+                    </ul>
+                    
+                    <h3>Recomendaciones de Operación:</h3>
+                    <ul>
+                        <li>Mantener presiones por debajo de 1,200 PSI para operación óptima</li>
+                        <li>Mantener temperatura entre 30-45°C para viscosidad ideal</li>
+                        <li>Realizar mantenimiento regular para mantener eficiencia superior al 85%</li>
+                        <li>Monitorear especialmente los tramos de alta pendiente entre Papallacta y San Juan</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para mostrar el reporte de rotura -->
+    <div id="rupture-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeRuptureModal()">&times;</span>
+            <h2>SIMULACIÓN DE ROTURA TOTAL DEL OLEODUCTO</h2>
+            
+            <div class="rupture-summary">
+                <h3>Resumen del Incidente</h3>
+                <p><strong>Tiempo de respuesta de sistemas de seguridad:</strong> <span id="response-time">--</span> minutos</p>
+                <p><strong>Tasa de derrame:</strong> <span id="spill-rate">--</span> barriles por minuto</p>
+                <p><strong>Volumen total derramado:</strong> <span id="total-volume">--</span> barriles</p>
+                <p><strong>Área potencialmente afectada:</strong> <span id="affected-area">--</span> hectáreas</p>
+                <p><strong>Costo estimado de limpieza:</strong> $<span id="cleanup-cost">--</span> millones USD</p>
+            </div>
+            
+            <h3>Desglose de Derrame por Tiempo</h3>
+            <table id="spill-table">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Volumen Derramado (barriles)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Se llenará dinámicamente -->
+                <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Oleoducto Ecuatoriano</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background-color: #00563f;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+        
+        .controls {
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .visualization {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .value-display {
+            display: inline-block;
+            width: 60px;
+            text-align: right;
+            font-weight: bold;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #00563f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #003d2b;
+        }
+        
+        .emergency-btn {
+            background-color: #e63946;
+        }
+        
+        .emergency-btn:hover {
+            background-color: #c1121f;
+        }
+        
+        .rupture-btn {
+            background-color: #800000;
+        }
+        
+        .rupture-btn:hover {
+            background-color: #600000;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .normal {
+            background-color: #2a9d8f;
+        }
+        
+        .warning {
+            background-color: #e9c46a;
+        }
+        
+        .danger {
+            background-color: #e63946;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+        
+        .tab-button {
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: bold;
+            margin: 0;
+            width: auto;
+        }
+        
+        .tab-button.active {
+            border-bottom: 3px solid #00563f;
+            color: #00563f;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .map-container {
+            background-color: #f0f9e8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        @keyframes flow {
+            from {
+                stroke-dashoffset: 100;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        #flow-animation {
+            animation: flow 2s linear infinite;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .data-card {
+            background-color: #00563f;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .data-card h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        
+        .data-card p {
+            margin: 5px 0 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #00563f;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .station-normal {
+            color: #2a9d8f;
+        }
+        
+        .station-warning {
+            color: #e9c46a;
+        }
+        
+        .station-critical {
+            color: #e63946;
+        }
+        
+        /* Estilos para el modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: #000;
+        }
+        
+        .modal h2 {
+            color: #800000;
+            margin-top: 0;
+        }
+        
+        .modal h3 {
+            color: #00563f;
+        }
+        
+        .rupture-summary {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .response-row {
+            background-color: #fff3cd !important;
+            font-weight: bold;
+        }
+        
+        .warning-note {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Simulador de Oleoducto Ecuatoriano</h1>
+        <p>Sistema Interactivo de Monitoreo y Control</p>
+    </header>
+    
+    <div class="container">
+        <div class="dashboard">
+            <div class="controls">
+                <label for="scenario">Escenario predefinido:</label>
+                <select id="scenario">
+                    <option value="normal">Operación Normal</option>
+                    <option value="high-demand">Alta Demanda</option>
+                    <option value="maintenance">Mantenimiento</option>
+                    <option value="emergency">Emergencia Simulada</option>
+                </select>
+                
+                <div class="control-group">
+                    <label for="flow-rate">Tasa de Flujo (barriles/día):</label>
+                    <input type="range" id="flow-rate" min="100000" max="450000" step="10000" value="250000">
+                    <div class="value-display" id="flow-rate-value">250000</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="pressure">Presión (PSI):</label>
+                    <input type="range" id="pressure" min="800" max="1500" step="10" value="1000">
+                    <div class="value-display" id="pressure-value">1000</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="temperature">Temperatura (°C):</label>
+                    <input type="range" id="temperature" min="20" max="60" step="1" value="35">
+                    <div class="value-display" id="temperature-value">35</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="viscosity">Viscosidad (cP):</label>
+                    <input type="range" id="viscosity" min="100" max="500" step="10" value="250">
+                    <div class="value-display" id="viscosity-value">250</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="pump-efficiency">Eficiencia de Bombeo (%):</label>
+                    <input type="range" id="pump-efficiency" min="70" max="100" step="1" value="85">
+                    <div class="value-display" id="pump-efficiency-value">85</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="maintenance-level">Nivel de Mantenimiento (%):</label>
+                    <input type="range" id="maintenance-level" min="50" max="100" step="1" value="90">
+                    <div class="value-display" id="maintenance-level-value">90</div>
+                </div>
+                
+                <div class="status">
+                    <div class="status-indicator normal" id="status-indicator"></div>
+                    <span id="status-text">Sistema Operando Normalmente</span>
+                </div>
+                
+                <button id="optimize-button">Optimizar Parámetros</button>
+                <button id="emergency-button" class="emergency-btn">Simular Emergencia</button>
+                <button id="rupture-button" class="rupture-btn">Simular Rotura Total</button>
+            </div>
+            
+            <div class="visualization">
+                <div class="map-container">
+                    <svg width="100%" height="100%" viewBox="0 0 800 300" style="margin-bottom: 20px;">
+                        <!-- Fondo -->
+                        <rect x="0" y="0" width="800" height="300" fill="#f0f9e8" />
+                        
+                        <!-- Terreno -->
+                        <path d="M0,200 Q200,150 400,200 T800,180" fill="#c7e9c0" />
+                        <path d="M0,300 Q200,250 400,280 T800,250 V300 H0 Z" fill="#a8ddb5" />
+                        
+                        <!-- Regiones -->
+                        <circle cx="100" cy="100" r="40" fill="#43a2ca" opacity="0.7" />
+                        <text x="100" y="105" text-anchor="middle" fill="#fff">Amazonia</text>
+                        
+                        <path d="M300,120 L350,60 L400,100 L450,70 L500,140" stroke="#7a5195" stroke-width="5" fill="none" />
+                        <text x="400" y="60" text-anchor="middle" fill="#7a5195">Andes</text>
+                        
+                        <path d="M650,180 Q700,170 750,190 T800,180" fill="#1d91c0" />
+                        <text x="700" y="170" text-anchor="middle" fill="#fff">Costa</text>
+                        
+                        <!-- Oleoducto -->
+                        <path d="M50,150 L120,140 L190,130 L260,100 L330,80 L400,120 L470,140 L540,150 L610,160 L680,170 L750,190" 
+                              stroke="#333" stroke-width="6" fill="none" />
+                        
+                        <!-- Flujo de petróleo -->
+                        <path d="M50,150 L120,140 L190,130 L260,100 L330,80 L400,120 L470,140 L540,150 L610,160 L680,170 L750,190" 
+                              stroke="#8B4513" stroke-width="4" stroke-dasharray="10" fill="none" id="flow-animation" />
+                        
+                        <!-- Estaciones de Bombeo -->
+                        <circle cx="50" cy="150" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="50" y="175" text-anchor="middle" font-size="12">Lago Agrio</text>
+                        
+                        <circle cx="120" cy="140" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="120" y="165" text-anchor="middle" font-size="12">Lumbaqui</text>
+                        
+                        <circle cx="190" cy="130" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="190" y="155" text-anchor="middle" font-size="12">El Salado</text>
+                        
+                        <circle cx="260" cy="100" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="260" y="125" text-anchor="middle" font-size="12">Baeza</text>
+                        
+                        <circle cx="330" cy="80" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="330" y="105" text-anchor="middle" font-size="12">Papallacta</text>
+                        
+                        <circle cx="680" cy="170" r="12" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="680" y="195" text-anchor="middle" font-size="12">Quinindé</text>
+                        
+                        <!-- Estaciones Reductoras -->
+                        <rect x="390" y="110" width="20" height="20" fill="#d4af37" stroke="#333" stroke-width="2" />
+                        <text x="400" y="145" text-anchor="middle" font-size="12">San Juan</text>
+                        
+                        <rect x="470" y="130" width="20" height="20" fill="#d4af37" stroke="#333" stroke-width="2" />
+                        <text x="480" y="165" text-anchor="middle" font-size="12">Chiriboga</text>
+                        
+                        <rect x="540" y="140" width="20" height="20" fill="#d4af37" stroke="#333" stroke-width="2" />
+                        <text x="550" y="175" text-anchor="middle" font-size="12">La Palma</text>
+                        
+                        <rect x="610" y="150" width="20" height="20" fill="#d4af37" stroke="#333" stroke-width="2" />
+                        <text x="610" y="185" text-anchor="middle" font-size="12">Sto. Domingo</text>
+                        
+                        <!-- Terminal -->
+                        <circle cx="750" cy="190" r="15" fill="#00563f" stroke="#333" stroke-width="2" />
+                        <text x="750" y="220" text-anchor="middle" font-size="12">Esmeraldas</text>
+                    </svg>
+                    
+                    <!-- Perfil de elevación simplificado -->
+                    <svg width="100%" height="120" viewBox="0 0 800 120">
+                        <!-- Ejes -->
+                        <line x1="50" y1="100" x2="750" y2="100" stroke="#666" stroke-width="1" />
+                        <line x1="50" y1="10" x2="50" y2="100" stroke="#666" stroke-width="1" />
+                        
+                        <!-- Etiquetas eje Y -->
+                        <text x="45" y="20" text-anchor="end" font-size="10">3500m</text>
+                        <text x="45" y="40" text-anchor="end" font-size="10">2500m</text>
+                        <text x="45" y="60" text-anchor="end" font-size="10">1500m</text>
+                        <text x="45" y="80" text-anchor="end" font-size="10">500m</text>
+                        <text x="45" y="100" text-anchor="end" font-size="10">0m</text>
+                        
+                        <!-- Línea de elevación -->
+                        <path d="M50,97 L120,88 L190,81 L260,70 L330,54 L400,40 L470,72 L540,78 L610,90 L680,97 L750,97" 
+                              stroke="#333" stroke-width="2" fill="none" />
+                        
+                        <!-- Puntos de estaciones -->
+                        <circle cx="50" cy="97" r="4" fill="#00563f" />
+                        <text x="50" y="110" text-anchor="middle" font-size="9">0km</text>
+                        
+                        <circle cx="120" cy="88" r="4" fill="#00563f" />
+                        <text x="120" y="110" text-anchor="middle" font-size="9">67km</text>
+                        
+                        <circle cx="190" cy="81" r="4" fill="#00563f" />
+                        <text x="190" y="110" text-anchor="middle" font-size="9">112km</text>
+                        
+                        <circle cx="260" cy="70" r="4" fill="#00563f" />
+                        <text x="260" y="110" text-anchor="middle" font-size="9">164km</text>
+                        
+                        <circle cx="330" cy="54" r="4" fill="#00563f" />
+                        <text x="330" y="110" text-anchor="middle" font-size="9">189km</text>
+                        
+                        <circle cx="400" cy="40" r="4" fill="#00563f" />
+                        <text x="400" y="110" text-anchor="middle" font-size="9">262km</text>
+                        
+                        <circle cx="470" cy="72" r="4" fill="#00563f" />
+                        <text x="470" y="110" text-anchor="middle" font-size="9">298km</text>
+                        
+                        <circle cx="540" cy="78" r="4" fill="#00563f" />
+                        <text x="540" y="110" text-anchor="middle" font-size="9">296km</text>
+                        
+                        <circle cx="610" cy="90" r="4" fill="#00563f" />
+                        <text x="610" y="110" text-anchor="middle" font-size="9">330km</text>
+                        
+                        <circle cx="680" cy="97" r="4" fill="#00563f" />
+                        <text x="680" y="110" text-anchor="middle" font-size="9">420km</text>
+                        
+                        <circle cx="750" cy="97" r="4" fill="#00563f" />
+                        <text x="750" y="110" text-anchor="middle" font-size="9">485km</text>
+                    </svg>
+                </div>
+                
+                <div class="tab-buttons">
+                    <button id="tab-charts" class="tab-button active">Gráficos</button>
+                    <button id="tab-station-details" class="tab-button">Detalles de Estaciones</button>
+                    <button id="tab-efficiency" class="tab-button">Eficiencia</button>
+                </div>
+                
+                <div id="charts" class="tab-content active">
+                    <h2>Datos en Tiempo Real</h2>
+                    <div class="data-grid">
+                        <div class="data-card">
+                            <h3>Caudal Total</h3>
+                            <p id="total-flow">250,000 BPD</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Consumo Energético</h3>
+                            <p id="energy-consumption">12.5 MW</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Eficiencia Global</h3>
+                            <p id="efficiency-value">85%</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Tiempo de Tránsito</h3>
+                            <p id="transit-time">5.2 días</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="station-details" class="tab-content">
+                    <h2>Datos por Estación</h2>
+                    <table id="station-table">
+                        <thead>
+                            <tr>
+                                <th>Estación</th>
+                                <th>Tipo</th>
+                                <th>Ubicación (Km)</th>
+                                <th>Altitud (msnm)</th>
+                                <th>Presión (PSI)</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Lago Agrio</td>
+                                <td>Bombeo</td>
+                                <td>0.00</td>
+                                <td>297</td>
+                                <td>1000</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Lumbaqui</td>
+                                <td>Bombeo</td>
+                                <td>66.57</td>
+                                <td>850</td>
+                                <td>980</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>El Salado</td>
+                                <td>Bombeo</td>
+                                <td>111.72</td>
+                                <td>1289</td>
+                                <td>1050</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Baeza</td>
+                                <td>Bombeo</td>
+                                <td>164.08</td>
+                                <td>2002</td>
+                                <td>1150</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Papallacta</td>
+                                <td>Bombeo</td>
+                                <td>189.29</td>
+                                <td>3009</td>
+                                <td>1200</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>San Juan</td>
+                                <td>Reductora</td>
+                                <td>261.68</td>
+                                <td>3497</td>
+                                <td>900</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Chiriboga</td>
+                                <td>Reductora</td>
+                                <td>297.62</td>
+                                <td>1998</td>
+                                <td>850</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>La Palma</td>
+                                <td>Reductora</td>
+                                <td>295.96</td>
+                                <td>1613</td>
+                                <td>880</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Santo Domingo</td>
+                                <td>Reductora</td>
+                                <td>329.87</td>
+                                <td>566</td>
+                                <td>920</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Quinindé</td>
+                                <td>Bombeo</td>
+                                <td>420.25</td>
+                                <td>97</td>
+                                <td>950</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                            <tr>
+                                <td>Esmeraldas</td>
+                                <td>Terminal</td>
+                                <td>485.00</td>
+                                <td>20</td>
+                                <td>920</td>
+                                <td class="station-normal">Normal</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="efficiency" class="tab-content">
+                    <h2>Análisis de Sistemas</h2>
+                    <p>El sistema de oleoducto ecuatoriano transporta petróleo desde la región amazónica hasta la costa del Pacífico, atravesando diversas condiciones geográficas y elevaciones.</p>
+                    
+                    <h3>Componentes Principales:</h3>
+                    <ul>
+                        <li><strong>6 Estaciones de Bombeo:</strong> Lago Agrio (0 km), Lumbaqui (66.57 km), El Salado (111.72 km), Baeza (164.08 km), Papallacta (189.29 km), Quinindé (420.25 km)</li>
+                        <li><strong>4 Estaciones Reductoras:</strong> San Juan (261.68 km), Chiriboga (297.62 km), La Palma (295.96 km), Santo Domingo (329.87 km)</li>
+                        <li><strong>Potencia Total Instalada:</strong> 103,650 HP</li>
+                        <li><strong>Longitud Total:</strong> 485 km</li>
+                        <li><strong>Variación de Altitud:</strong> 0-3,497 msnm</li>
+                    </ul>
+                    
+                    <h3>Recomendaciones de Operación:</h3>
+                    <ul>
+                        <li>Mantener presiones por debajo de 1,200 PSI para operación óptima</li>
+                        <li>Mantener temperatura entre 30-45°C para viscosidad ideal</li>
+                        <li>Realizar mantenimiento regular para mantener eficiencia superior al 85%</li>
+                        <li>Monitorear especialmente los tramos de alta pendiente entre Papallacta y San Juan</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para mostrar el reporte de rotura -->
+    <div id="rupture-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeRuptureModal()">&times;</span>
+            <h2>SIMULACIÓN DE ROTURA TOTAL DEL OLEODUCTO</h2>
+            
+            <div class="rupture-summary">
+                <h3>Resumen del Incidente</h3>
+                <p><strong>Tiempo de respuesta de sistemas de seguridad:</strong> <span id="response-time">--</span> minutos</p>
+                <p><strong>Tasa de derrame:</strong> <span id="spill-rate">--</span> barriles por minuto</p>
+                <p><strong>Volumen total derramado:</strong> <span id="total-volume">--</span> barriles</p>
+                <p><strong>Área potencialmente afectada:</strong> <span id="affected-area">--</span> hectáreas</p>
+                <p><strong>Costo estimado de limpieza:</strong> $<span id="cleanup-cost">--</span> millones USD</p>
+            </div>
+            
+            <h3>Desglose de Derrame por Tiempo</h3>
+            <table id="spill-table">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Volumen Derramado (barriles)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Se llenará dinámicamente -->
+                </tbody>
+            </table>
+            
+            <div class="warning-note">
+                <p><strong>NOTA:</strong> Los valores posteriores al tiempo de respuesta representan un escenario hipotético si los sistemas de seguridad fallaran completamente.</p>
+                <p><strong>ALERTA:</strong> Esta es una simulación de un evento catastrófico que requeriría la activación inmediata de protocolos de emergencia, contención y planes de remediación ambiental.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pie de página -->
+    <footer>
+        Derechos Reservados &copy; 2025, Ing. Benito Cabrera R., MBA.
+    </footer>
+    
+    <script>
+        // Inicializar la aplicación al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar sliders
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', function() {
+                    updateSliderValue(this.id, this.value);
+                    updateAllData();
+                });
+            });
+            
+            // Configurar pestañas
+            document.getElementById('tab-charts').addEventListener('click', function() {
+                showTab('charts');
+            });
+            
+            document.getElementById('tab-station-details').addEventListener('click', function() {
+                showTab('station-details');
+            });
+            
+            document.getElementById('tab-efficiency').addEventListener('click', function() {
+                showTab('efficiency');
+            });
+            
+            // Configurar selector de escenarios
+            document.getElementById('scenario').addEventListener('change', function() {
+                changeScenario(this.value);
+            });
+            
+            // Configurar botones
+            document.getElementById('optimize-button').addEventListener('click', optimizeParameters);
+            document.getElementById('emergency-button').addEventListener('click', simulateEmergency);
+            document.getElementById('rupture-button').addEventListener('click', simulatePipelineRupture);
+            
+            // Actualizar datos iniciales
+            updateAllData();
+        });
+        
+        // Actualizar el valor mostrado de un slider
+        function updateSliderValue(id, value) {
+            const valueElement = document.getElementById(id + '-value');
+            if (valueElement) {
+                valueElement.textContent = value;
+            }
+        }
+        
+        // Mostrar una pestaña específica
+        function showTab(tabId) {
+            // Ocultar todas las pestañas
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Desactivar todos los botones
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Mostrar la pestaña seleccionada
+            const selectedTab = document.getElementById(tabId);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // Activar el botón correspondiente
+            const selectedButton = document.getElementById('tab-' + tabId);
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
+        }
+        
+        // Cambiar escenario predefinido
+        function changeScenario(scenario) {
+            switch(scenario) {
+                case 'normal':
+                    setValues({
+                        'flow-rate': 250000,
+                        'pressure': 1000,
+                        'temperature': 35,
+                        'viscosity': 250,
+                        'pump-efficiency': 85,
+                        'maintenance-level': 90
+                    });
+                    break;
+                case 'high-demand':
+                    setValues({
+                        'flow-rate': 400000,
+                        'pressure': 1250,
+                        'temperature': 48,
+                        'viscosity': 280,
+                        'pump-efficiency': 95,
+                        'maintenance-level': 85
+                    });
+                    break;
+                case 'maintenance':
+                    setValues({
+                        'flow-rate': 150000,
+                        'pressure': 900,
+                        'temperature': 30,
+                        'viscosity': 230,
+                        'pump-efficiency': 75,
+                        'maintenance-level': 65
+                    });
+                    break;
+                case 'emergency':
+                    setValues({
+                        'flow-rate': 200000,
+                        'pressure': 1450,
+                        'temperature': 55,
+                        'viscosity': 450,
+                        'pump-efficiency': 70,
+                        'maintenance-level': 60
+                    });
+                    break;
+            }
+            
+            updateAllData();
+        }
+        
+        // Establecer valores para los controles
+        function setValues(values) {
+            for (const id in values) {
+                const slider = document.getElementById(id);
+                if (slider) {
+                    slider.value = values[id];
+                    updateSliderValue(id, values[id]);
+                }
+            }
+        }
+        
+        // Actualizar todos los datos basados en los valores actuales
+        function updateAllData() {
+            // Obtener valores actuales
+            const flowRate = parseInt(document.getElementById('flow-rate').value) || 250000;
+            const pressure = parseInt(document.getElementById('pressure').value) || 1000;
+            const temperature = parseInt(document.getElementById('temperature').value) || 35;
+            const viscosity = parseInt(document.getElementById('viscosity').value) || 250;
+            const pumpEfficiency = parseInt(document.getElementById('pump-efficiency').value) || 85;
+            const maintenanceLevel = parseInt(document.getElementById('maintenance-level').value) || 90;
+            
+            // Calcular valores derivados
+            const energyConsumption = calculateEnergyConsumption(flowRate, pressure, viscosity, pumpEfficiency);
+            const efficiency = calculateEfficiency(flowRate, pressure, temperature, viscosity, maintenanceLevel);
+            const transitTime = calculateTransitTime(flowRate, viscosity);
+            
+            // Actualizar datos en tiempo real
+            document.getElementById('total-flow').textContent = formatNumber(flowRate) + ' BPD';
+            document.getElementById('energy-consumption').textContent = energyConsumption.toFixed(1) + ' MW';
+            document.getElementById('efficiency-value').textContent = efficiency.toFixed(0) + '%';
+            document.getElementById('transit-time').textContent = transitTime.toFixed(1) + ' días';
+            
+            // Actualizar estado del sistema
+            updateSystemStatus(pressure, temperature, maintenanceLevel, flowRate);
+            
+            // Actualizar tabla de estaciones
+            updateStationsTable(pressure);
+            
+            // Actualizar animación de flujo
+            updateFlowAnimation(flowRate);
+        }
+        
+        // Actualizar animación de flujo
+        function updateFlowAnimation(flowRate) {
+            const flowAnimation = document.getElementById('flow-animation');
+            if (flowAnimation) {
+                const speed = Math.max(0.5, 10 - (flowRate / 100000));
+                flowAnimation.style.animation = `flow ${speed}s linear infinite`;
+            }
+        }
+        
+        // Calcular consumo energético
+        function calculateEnergyConsumption(flowRate, pressure, viscosity, efficiency) {
+            return (flowRate * pressure * viscosity) / (50000 * efficiency);
+        }
+        
+        // Calcular eficiencia del sistema
+        function calculateEfficiency(flowRate, pressure, temperature, viscosity, maintenance) {
+            let eff = maintenance;
+            
+            if (pressure > 1200) eff -= (pressure - 1200) / 10;
+            if (temperature > 45) eff -= (temperature - 45) * 0.5;
+            if (viscosity > 350) eff -= (viscosity - 350) / 10;
+            if (flowRate > 350000) eff -= (flowRate - 350000) / 10000;
+            
+            return Math.max(0, Math.min(100, eff));
+        }
+        
+        // Calcular tiempo de tránsito
+        function calculateTransitTime(flowRate, viscosity) {
+            const distance = 485;
+            const baseSpeed = flowRate / 25000;
+            const viscosityFactor = 1 - ((viscosity - 100) / 1000);
+            
+            return distance / (baseSpeed * viscosityFactor);
+        }
+        
+        // Actualizar estado del sistema
+        function updateSystemStatus(pressure, temperature, maintenance, flowRate) {
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
+            if (!statusIndicator || !statusText) return;
+            
+            let status = 'normal';
+            let message = 'Sistema Operando Normalmente';
+            
+            if (pressure > 1400 || temperature > 55 || maintenance < 60 || flowRate > 400000) {
+                status = 'danger';
+                message = 'ALERTA: Condiciones Críticas Detectadas';
+            } else if (pressure > 1200 || temperature > 45 || maintenance < 70 || flowRate > 350000) {
+                status = 'warning';
+                message = 'Advertencia: Parámetros Fuera del Rango Óptimo';
+            }
+            
+            statusIndicator.className = 'status-indicator ' + status;
+            statusText.textContent = message;
+        }
+        
+        // Actualizar tabla de estaciones
+        function updateStationsTable(basePressure) {
+            const table = document.getElementById('station-table');
+            if (!table) return;
+            
+            const tbody = table.getElementsByTagName('tbody')[0];
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            if (!rows || rows.length === 0) return;
+            
+            for (let i = 0; i < rows.length; i++) {
+                try {
+                    // Calcular presión para esta estación
+                    let stationPressure;
+                    const stationType = rows[i].cells[1].textContent;
+                    
+                    if (stationType === 'Bombeo') {
+                        stationPressure = Math.round(basePressure * (1 + Math.random() * 0.2));
+                    } else if (stationType === 'Reductora') {
+                        stationPressure = Math.round(basePressure * (0.7 + Math.random() * 0.2));
+                    } else {
+                        stationPressure = Math.round(basePressure * (0.9 + Math.random() * 0.1));
+                    }
+                    
+                    // Actualizar celda de presión
+                    rows[i].cells[4].textContent = stationPressure;
+                    
+                    // Actualizar estado basado en la presión
+                    let status = 'Normal';
+                    let statusClass = 'station-normal';
+                    
+                    if (stationPressure > 1400) {
+                        status = 'Crítico';
+                        statusClass = 'station-critical';
+                    } else if (stationPressure > 1200) {
+                        status = 'Advertencia';
+                        statusClass = 'station-warning';
+                    }
+                    
+                    rows[i].cells[5].textContent = status;
+                    rows[i].cells[5].className = statusClass;
+                } catch (error) {
+                    console.error('Error al actualizar fila ' + i, error);
+                }
+            }
+        }
+        
+        // Formatear números con separadores de miles
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // Optimizar parámetros
+        function optimizeParameters() {
+            const flowRate = parseInt(document.getElementById('flow-rate').value) || 250000;
+            
+            // Calcular valores óptimos
+            const optimalPressure = Math.min(1200, 800 + (flowRate / 10000));
+            const optimalTemp = Math.min(40, 30 + (flowRate / 25000));
+            const optimalViscosity = Math.min(300, 200 + (flowRate / 20000));
+            
+            // Aplicar valores optimizados
+            setValues({
+                'pressure': Math.round(optimalPressure),
+                'temperature': Math.round(optimalTemp),
+                'viscosity': Math.round(optimalViscosity),
+                'pump-efficiency': 95,
+                'maintenance-level': 95
+            });
+            
+            updateAllData();
+        }
+        
+        // Simular emergencia
+        function simulateEmergency() {
+            setValues({
+                'pressure': 1450,
+                'temperature': 55,
+                'viscosity': 450,
+                'pump-efficiency': 70,
+                'maintenance-level': 60
+            });
+            
+            updateAllData();
+            
+            alert("¡ALERTA! Simulando condiciones de emergencia en el oleoducto.\nSe han detectado parámetros críticos que requieren atención inmediata.");
+        }
+        
+        // Calcular tiempo de respuesta de sistemas de seguridad en minutos
+        function calculateResponseTime(pressure) {
+            // Base: 15 minutos con ajuste por presión
+            const baseResponseTime = 15;
+            const pressureFactor = 5 * (1 - (pressure - 800) / 700); // 800-1500 PSI rango
+            
+            return Math.max(5, Math.min(20, baseResponseTime + pressureFactor));
+        }
+        
+        // Simular rotura total del oleoducto
+        function simulatePipelineRupture() {
+            try {
+                // Obtener el flujo actual
+                const flowRate = parseInt(document.getElementById('flow-rate').value) || 250000;
+                const pressure = parseInt(document.getElementById('pressure').value) || 1000;
+                
+                // Calcular tiempo de respuesta del sistema de seguridad (en minutos)
+                const responseTime = calculateResponseTime(pressure);
+                
+                // Calcular factor de fuga basado en presión
+                const leakageFactor = 1 + (pressure / 1000);
+                
+                // Calcular volumen derramado (barriles)
+                const flowRatePerMinute = flowRate / (24 * 60);
+                const spillRatePerMinute = flowRatePerMinute * leakageFactor;
+                const spilledVolume = spillRatePerMinute * responseTime;
+                
+                // Calcular área afectada (hectáreas)
+                const affectedArea = (spilledVolume / 1000) * 1.5;
+                
+                // Calcular costo de limpieza (millones USD)
+                const volumeCost = spilledVolume * 5000 / 1000000; // en millones
+                const areaCost = affectedArea * 0.5;
+                const cleanupCost = volumeCost + areaCost;
+                
+                // Definir intervalos de tiempo para mostrar
+                const timeIntervals = [
+                    { time: 1, label: "1 minuto", volume: spillRatePerMinute * 1 },
+                    { time: 5, label: "5 minutos", volume: spillRatePerMinute * 5 },
+                    { time: 10, label: "10 minutos", volume: spillRatePerMinute * 10 },
+                    { time: responseTime, label: responseTime.toFixed(1) + " minutos (tiempo de respuesta)", volume: spilledVolume },
+                    { time: 30, label: "30 minutos (sin contención)", volume: spillRatePerMinute * 30 },
+                    { time: 60, label: "1 hora (sin contención)", volume: spillRatePerMinute * 60 },
+                    { time: 180, label: "3 horas (sin contención)", volume: spillRatePerMinute * 180 },
+                    { time: 360, label: "6 horas (sin contención)", volume: spillRatePerMinute * 360 }
+                ];
+                
+                // Actualizar los datos del reporte en el modal
+                document.getElementById('response-time').textContent = responseTime.toFixed(1);
+                document.getElementById('spill-rate').textContent = formatNumber(Math.round(spillRatePerMinute));
+                document.getElementById('total-volume').textContent = formatNumber(Math.round(spilledVolume));
+                document.getElementById('affected-area').textContent = affectedArea.toFixed(2);
+                document.getElementById('cleanup-cost').textContent = cleanupCost.toFixed(2);
+                
+                // Llenar tabla de desglose
+                const tableBody = document.getElementById('spill-table').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = ''; // Limpiar tabla
+                
+                timeIntervals.forEach(interval => {
+                    const row = tableBody.insertRow();
+                    
+                    // Resaltar fila de tiempo de respuesta
+                    if (interval.time === responseTime) {
+                        row.className = 'response-row';
+                    }
+                    
+                    const cellPeriod = row.insertCell(0);
+                    cellPeriod.textContent = interval.label;
+                    
+                    const cellVolume = row.insertCell(1);
+                    cellVolume.textContent = formatNumber(Math.round(interval.volume));
+                });
+                
+                // Mostrar el modal
+                document.getElementById('rupture-modal').style.display = 'block';
+                
+                // Actualizar los parámetros a valores de emergencia extrema
+                setValues({
+                    'pressure': 1500,
+                    'temperature': 60,
+                    'viscosity': 500,
+                    'pump-efficiency': 50,
+                    'maintenance-level': 50
+                });
+                
+                // Cambiar el estado del sistema a crítico
+                const statusIndicator = document.getElementById('status-indicator');
+                const statusText = document.getElementById('status-text');
+                
+                if (statusIndicator) {
+                    statusIndicator.className = 'status-indicator danger';
+                }
+                
+                if (statusText) {
+                    statusText.textContent = 'ALERTA CRÍTICA: Rotura Total Detectada';
+                }
+                
+                updateAllData();
+            } catch (error) {
+                console.error("Error en simulatePipelineRupture:", error);
+                alert("Ocurrió un error al simular la rotura. Por favor, intente de nuevo.");
+            }
+        }
+        
+        // Cerrar el modal de rotura
+        function closeRuptureModal() {
+            document.getElementById('rupture-modal').style.display = 'none';
+        }
+        
+        // Cerrar el modal al hacer clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('rupture-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
+    
+    <script>
+        // Inicializar la aplicación al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar sliders
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', function() {
+                    updateSliderValue(this.id, this.value);
+                    updateAllData();
+                });
+            });
+            
+            // Configurar pestañas
+            document.getElementById('tab-charts').addEventListener('click', function() {
+                showTab('charts');
+            });
+            
+            document.getElementById('tab-station-details').addEventListener('click', function() {
+                showTab('station-details');
+            });
+            
+            document.getElementById('tab-efficiency').addEventListener('click', function() {
+                showTab('efficiency');
+            });
+            
+            // Configurar selector de escenarios
+            document.getElementById('scenario').addEventListener('change', function() {
+                changeScenario(this.value);
+            });
+            
+            // Configurar botones
+            document.getElementById('optimize-button').addEventListener('click', optimizeParameters);
+            document.getElementById('emergency-button').addEventListener('click', simulateEmergency);
+            document.getElementById('rupture-button').addEventListener('click', simulatePipelineRupture);
+            
+            // Actualizar datos iniciales
+            updateAllData();
+        });
+        
+        // Actualizar el valor mostrado de un slider
+        function updateSliderValue(id, value) {
+            const valueElement = document.getElementById(id + '-value');
+            if (valueElement) {
+                valueElement.textContent = value;
+            }
+        }
+        
+        // Mostrar una pestaña específica
+        function showTab(tabId) {
+            // Ocultar todas las pestañas
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Desactivar todos los botones
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Mostrar la pestaña seleccionada
+            const selectedTab = document.getElementById(tabId);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // Activar el botón correspondiente
+            const selectedButton = document.getElementById('tab-' + tabId);
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
+        }
+        
+        // Cambiar escenario predefinido
+        function changeScenario(scenario) {
+            switch(scenario) {
+                case 'normal':
+                    setValues({
+                        'flow-rate': 250000,
+                        'pressure': 1000,
+                        'temperature': 35,
+                        'viscosity': 250,
+                        'pump-efficiency': 85,
+                        'maintenance-level': 90
+                    });
+                    break;
+                case 'high-demand':
+                    setValues({
+                        'flow-rate': 400000,
+                        'pressure': 1250,
+                        'temperature': 48,
+                        'viscosity': 280,
+                        'pump-efficiency': 95,
+                        'maintenance-level': 85
+                    });
+                    break;
+                case 'maintenance':
+                    setValues({
+                        'flow-rate': 150000,
+                        'pressure': 900,
+                        'temperature': 30,
+                        'viscosity': 230,
+                        'pump-efficiency': 75,
+                        'maintenance-level': 65
+                    });
+                    break;
+                case 'emergency':
+                    setValues({
+                        'flow-rate': 200000,
+                        'pressure': 1450,
+                        'temperature': 55,
+                        'viscosity': 450,
+                        'pump-efficiency': 70,
+                        'maintenance-level': 60
+                    });
+                    break;
+            }
+            
+            updateAllData();
+        }
+        
+        // Establecer valores para los controles
+        function setValues(values) {
+            for (const id in values) {
+                const slider = document.getElementById(id);
+                if (slider) {
+                    slider.value = values[id];
+                    updateSliderValue(id, values[id]);
+                }
+            }
+        }
+        
+        // Actualizar todos los datos basados en los valores actuales
+        function updateAllData() {
+            // Obtener valores actuales
+            const flowRate = parseInt(document.getElementById('flow-rate').value) || 250000;
+            const pressure = parseInt(document.getElementById('pressure').value) || 1000;
+            const temperature = parseInt(document.getElementById('temperature').value) || 35;
+            const viscosity = parseInt(document.getElementById('viscosity').value) || 250;
+            const pumpEfficiency = parseInt(document.getElementById('pump-efficiency').value) || 85;
+            const maintenanceLevel = parseInt(document.getElementById('maintenance-level').value) || 90;
+            
+            // Calcular valores derivados
+            const energyConsumption = calculateEnergyConsumption(flowRate, pressure, viscosity, pumpEfficiency);
+            const efficiency = calculateEfficiency(flowRate, pressure, temperature, viscosity, maintenanceLevel);
+            const transitTime = calculateTransitTime(flowRate, viscosity);
+            
+            // Actualizar datos en tiempo real
+            document.getElementById('total-flow').textContent = formatNumber(flowRate) + ' BPD';
+            document.getElementById('energy-consumption').textContent = energyConsumption.toFixed(1) + ' MW';
+            document.getElementById('efficiency-value').textContent = efficiency.toFixed(0) + '%';
+            document.getElementById('transit-time').textContent = transitTime.toFixed(1) + ' días';
+            
+            // Actualizar estado del sistema
+            updateSystemStatus(pressure, temperature, maintenanceLevel, flowRate);
+            
+            // Actualizar tabla de estaciones
+            updateStationsTable(pressure);
+            
+            // Actualizar animación de flujo
+            updateFlowAnimation(flowRate);
+        }
+        
+        // Actualizar animación de flujo
+        function updateFlowAnimation(flowRate) {
+            const flowAnimation = document.getElementById('flow-animation');
+            if (flowAnimation) {
+                const speed = Math.max(0.5, 10 - (flowRate / 100000));
+                flowAnimation.style.animation = `flow ${speed}s linear infinite`;
+            }
+        }
+        
+        // Calcular consumo energético
+        function calculateEnergyConsumption(flowRate, pressure, viscosity, efficiency) {
+            return (flowRate * pressure * viscosity) / (50000 * efficiency);
+        }
+        
+        // Calcular eficiencia del sistema
+        function calculateEfficiency(flowRate, pressure, temperature, viscosity, maintenance) {
+            let eff = maintenance;
+            
+            if (pressure > 1200) eff -= (pressure - 1200) / 10;
+            if (temperature > 45) eff -= (temperature - 45) * 0.5;
+            if (viscosity > 350) eff -= (viscosity - 350) / 10;
+            if (flowRate > 350000) eff -= (flowRate - 350000) / 10000;
+            
+            return Math.max(0, Math.min(100, eff));
+        }
+        
+        // Calcular tiempo de tránsito
+        function calculateTransitTime(flowRate, viscosity) {
+            const distance = 485;
+            const baseSpeed = flowRate / 25000;
+            const viscosityFactor = 1 - ((viscosity - 100) / 1000);
+            
+            return distance / (baseSpeed * viscosityFactor);
+        }
+        
+        // Actualizar estado del sistema
+        function updateSystemStatus(pressure, temperature, maintenance, flowRate) {
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
+            if (!statusIndicator || !statusText) return;
+            
+            let status = 'normal';
+            let message = 'Sistema Operando Normalmente';
+            
+            if (pressure > 1400 || temperature > 55 || maintenance < 60 || flowRate > 400000) {
+                status = 'danger';
+                message = 'ALERTA: Condiciones Críticas Detectadas';
+            } else if (pressure > 1200 || temperature > 45 || maintenance < 70 || flowRate > 350000) {
+                status = 'warning';
+                message = 'Advertencia: Parámetros Fuera del Rango Óptimo';
+            }
+            
+            statusIndicator.className = 'status-indicator ' + status;
+            statusText.textContent = message;
+        }
+        
+        // Actualizar tabla de estaciones
+        function updateStationsTable(basePressure) {
+            const table = document.getElementById('station-table');
+            if (!table) return;
+            
+            const tbody = table.getElementsByTagName('tbody')[0];
+            if (!tbody) return;
+            
+            const rows = tbody.getElementsByTagName('tr');
+            if (!rows || rows.length === 0) return;
+            
+            for (let i = 0; i < rows.length; i++) {
+                try {
+                    // Calcular presión para esta estación
+                    let stationPressure;
+                    const stationType = rows[i].cells[1].textContent;
+                    
+                    if (stationType === 'Bombeo') {
+                        stationPressure = Math.round(basePressure * (1 + Math.random() * 0.2));
+                    } else if (stationType === 'Reductora') {
+                        stationPressure = Math.round(basePressure * (0.7 + Math.random() * 0.2));
+                    } else {
+                        stationPressure = Math.round(basePressure * (0.9 + Math.random() * 0.1));
+                    }
+                    
+                    // Actualizar celda de presión
+                    rows[i].cells[4].textContent = stationPressure;
+                    
+                    // Actualizar estado basado en la presión
+                    let status = 'Normal';
+                    let statusClass = 'station-normal';
+                    
+                    if (stationPressure > 1400) {
+                        status = 'Crítico';
+                        statusClass = 'station-critical';
+                    } else if (stationPressure > 1200) {
+                        status = 'Advertencia';
+                        statusClass = 'station-warning';
+                    }
+                    
+                    rows[i].cells[5].textContent = status;
+                    rows[i].cells[5].className = statusClass;
+                } catch (error) {
+                    console.error('Error al actualizar fila ' + i, error);
+                }
+            }
+        }
+        
+        // Formatear números con separadores de miles
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // Optimizar parámetros
+        function optimizeParameters() {
+            const flowRate = parseInt(document.getElementById('flow-rate').value) || 250000;
+            
+            // Calcular valores óptimos
+            const optimalPressure = Math.min(1200, 800 + (flowRate / 10000));
+            const optimalTemp = Math.min(40, 30 + (flowRate / 25000));
+            const optimalViscosity = Math.min(300, 200 + (flowRate / 20000));
+            
+            // Aplicar valores optimizados
+            setValues({
+                'pressure': Math.round(optimalPressure),
+                'temperature': Math.round(optimalTemp),
+                'viscosity': Math.round(optimalViscosity),
+                'pump-efficiency': 95,
+                'maintenance-level': 95
+            });
+            
+            updateAllData();
+        }
+        
+        // Simular emergencia
+        function simulateEmergency() {
+            setValues({
+                'pressure': 1450,
+                'temperature': 55,
+                'viscosity': 450,
+                'pump-efficiency': 70,
+                'maintenance-level': 60
+            });
+            
+            updateAllData();
+            
+            alert("¡ALERTA! Simulando condiciones de emergencia en el oleoducto.\nSe han detectado parámetros críticos que requieren atención inmediata.");
+        }
+        
+        // Calcular tiempo de respuesta de sistemas de seguridad en minutos
+        function calculateResponseTime(pressure) {
+            // Base: 15 minutos con ajuste por presión
+            const baseResponseTime = 15;
+            const pressureFactor = 5 * (1 - (pressure - 800) / 700); // 800-1500 PSI rango
+            
+            return Math.max(5, Math.min(20, baseResponseTime + pressureFactor));
+        }
+        
+        // Simular rotura total del oleoducto
+        function simulatePipelineRupture() {
+            try {
+                // Obtener el flujo actual
+                const flowRate = parseInt(document.getElementById('flow-rate').value) || 250000;
+                const pressure = parseInt(document.getElementById('pressure').value) || 1000;
+                
+                // Calcular tiempo de respuesta del sistema de seguridad (en minutos)
+                const responseTime = calculateResponseTime(pressure);
+                
+                // Calcular factor de fuga basado en presión
+                const leakageFactor = 1 + (pressure / 1000);
+                
+                // Calcular volumen derramado (barriles)
+                const flowRatePerMinute = flowRate / (24 * 60);
+                const spillRatePerMinute = flowRatePerMinute * leakageFactor;
+                const spilledVolume = spillRatePerMinute * responseTime;
+                
+                // Calcular área afectada (hectáreas)
+                const affectedArea = (spilledVolume / 1000) * 1.5;
+                
+                // Calcular costo de limpieza (millones USD)
+                const volumeCost = spilledVolume * 5000 / 1000000; // en millones
+                const areaCost = affectedArea * 0.5;
+                const cleanupCost = volumeCost + areaCost;
+                
+                // Definir intervalos de tiempo para mostrar
+                const timeIntervals = [
+                    { time: 1, label: "1 minuto", volume: spillRatePerMinute * 1 },
+                    { time: 5, label: "5 minutos", volume: spillRatePerMinute * 5 },
+                    { time: 10, label: "10 minutos", volume: spillRatePerMinute * 10 },
+                    { time: responseTime, label: responseTime.toFixed(1) + " minutos (tiempo de respuesta)", volume: spilledVolume },
+                    { time: 30, label: "30 minutos (sin contención)", volume: spillRatePerMinute * 30 },
+                    { time: 60, label: "1 hora (sin contención)", volume: spillRatePerMinute * 60 },
+                    { time: 180, label: "3 horas (sin contención)", volume: spillRatePerMinute * 180 },
+                    { time: 360, label: "6 horas (sin contención)", volume: spillRatePerMinute * 360 }
+                ];
+                
+                // Actualizar los datos del reporte en el modal
+                document.getElementById('response-time').textContent = responseTime.toFixed(1);
+                document.getElementById('spill-rate').textContent = formatNumber(Math.round(spillRatePerMinute));
+                document.getElementById('total-volume').textContent = formatNumber(Math.round(spilledVolume));
+                document.getElementById('affected-area').textContent = affectedArea.toFixed(2);
+                document.getElementById('cleanup-cost').textContent = cleanupCost.toFixed(2);
+                
+                // Llenar tabla de desglose
+                const tableBody = document.getElementById('spill-table').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = ''; // Limpiar tabla
+                
+                timeIntervals.forEach(interval => {
+                    const row = tableBody.insertRow();
+                    
+                    // Resaltar fila de tiempo de respuesta
+                    if (interval.time === responseTime) {
+                        row.className = 'response-row';
+                    }
+                    
+                    const cellPeriod = row.insertCell(0);
+                    cellPeriod.textContent = interval.label;
+                    
+                    const cellVolume = row.insertCell(1);
+                    cellVolume.textContent = formatNumber(Math.round(interval.volume));
+                });
+                
+                // Mostrar el modal
+                document.getElementById('rupture-modal').style.display = 'block';
+                
+                // Actualizar los parámetros a valores de emergencia extrema
+                setValues({
+                    'pressure': 1500,
+                    'temperature': 60,
+                    'viscosity': 500,
+                    'pump-efficiency': 50,
+                    'maintenance-level': 50
+                });
+                
+                // Cambiar el estado del sistema a crítico
+                const statusIndicator = document.getElementById('status-indicator');
+                const statusText = document.getElementById('status-text');
+                
+                if (statusIndicator) {
+                    statusIndicator.className = 'status-indicator danger';
+                }
+                
+                if (statusText) {
+                    statusText.textContent = 'ALERTA CRÍTICA: Rotura Total Detectada';
+                }
+                
+                updateAllData();
+            } catch (error) {
+                console.error("Error en simulatePipelineRupture:", error);
+                alert("Ocurrió un error al simular la rotura. Por favor, intente de nuevo.");
+            }
+        }
+        
+        // Cerrar el modal de rotura
+        function closeRuptureModal() {
+            document.getElementById('rupture-modal').style.display = 'none';
+        }
+        
+        // Cerrar el modal al hacer clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('rupture-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
